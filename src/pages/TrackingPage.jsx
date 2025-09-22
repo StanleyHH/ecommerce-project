@@ -1,5 +1,7 @@
-import { Link } from "react-router";
-import { Header } from "../components/Header.jsx";
+import { Link } from 'react-router';
+
+import { Header } from '../components/Header.jsx';
+
 import './TrackingPage.css';
 
 export function TrackingPage() {
