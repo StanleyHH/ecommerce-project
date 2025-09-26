@@ -1,20 +1,16 @@
-// {
-//     "totalItems": 0,
-//     "productCostCents": 0,
-//     "shippingCostCents": 0,
-//     "totalCostBeforeTaxCents": 0,
-//     "taxCents": 0,
-//     "totalCostCents": 0
-// }
-
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
-import { MemoryRouter } from 'react-router';
+import { MemoryRouter, useLocation } from 'react-router';
 import { PaymentSummary } from './PaymentSummary.jsx';
+import userEvent from '@testing-library/user-event';
+import axios from 'axios';
+
+vi.mock('axios');
 
 describe('PaymentSummery component', () => {
     let paymentSummery;
     let loadCart;
+    let user;
 
     beforeEach(() => {
         paymentSummery = {
@@ -26,6 +22,7 @@ describe('PaymentSummery component', () => {
             "totalCostCents": 770
         };
         loadCart = vi.fn();
+        user = userEvent.setup();
     });
 
     it('display payment summary correctly', async () => {
@@ -47,5 +44,26 @@ describe('PaymentSummery component', () => {
         expect(screen.getByTestId('payment-summary-total')).toHaveTextContent('$7.70');
     });
 
+    it('place an order', async ()=> {
+        function Location() {
+            const location = useLocation();
+            return (
+                <div data-testid="url-path">{location.pathname}</div>
+            );
+        }
 
+        render(
+            <MemoryRouter>
+                <PaymentSummary paymentSummary={paymentSummery} loadCart={loadCart} />
+                <Location />
+            </MemoryRouter>
+        );
+
+        const placeOrderButton = screen.getByTestId('place-order-button');
+        await user.click(placeOrderButton);
+
+        expect(axios.post).toHaveBeenCalledWith('/api/orders');
+        expect(loadCart).toHaveBeenCalled();
+        expect(screen.getByTestId('url-path')).toHaveTextContent('/orders');
+    });
 });
